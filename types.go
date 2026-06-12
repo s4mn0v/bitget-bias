@@ -25,3 +25,13 @@ type LongShortRatio struct {
 	LongShortRatio  string `json:"longShortRatio"`
 	Ts              string `json:"ts"`
 }
+
+type FundingRate struct {
+	Symbol      string `json:"symbol"`
+	FundingRate string `json:"fundingRate"`
+}
+
+type TakerVolume struct {
+	BuyVolume  string `json:"buyVolume"`
+	SellVolume string `json:"sellVolume"`
+}

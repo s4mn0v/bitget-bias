@@ -1,39 +1,29 @@
 # Bitget Bias
 
-Bitget Bias is a command-line market analysis tool written in Go. It aggregates real-time data from Bitget's Spot and Futures markets to calculate a directional bias score based on institutional flow and retail sentiment.
+Bitget Bias is a professional command-line market analysis tool built in Go. It aggregates real-time data from Bitget's Futures markets to calculate a directional bias score by weighing institutional aggression against retail sentiment.
 
 ## Highlights
 
-*   Institutional Whale Flow: Identifies whether "Smart Money" is in an accumulation or distribution phase.
-*   Retail Sentiment Analysis: Monitors Long/Short ratios to identify potential retail traps and upcoming liquidity sweeps.
-*   Open Interest Tracking: Measures money flow into futures to confirm the strength of market displacement.
+*   Institutional Aggression Tracking: Monitors Taker Buy/Sell volume to identify market displacement.
+*   Retail Sentiment Analysis: Analyzes Long/Short ratios to identify potential retail traps and liquidity sweeps.
+*   Funding Rate Monitoring: Detects overheated positioning that often precedes market reversals.
 *   Automated Scoring: Provides a consolidated Bullish, Bearish, or Neutral bias based on multi-factor weighted analysis.
-*   Extensible Architecture: Built with types ready to incorporate Orderbook, Fund Flow, and Fair Value Gap (FVG) data.
+*   AMD Framework: Designed to assist traders using the Accumulation-Manipulation-Distribution methodology.
 
 ## Overview
 
-The core philosophy of Bitget Bias is rooted in the interaction between institutional activity and retail positioning. By comparing Spot Whale Net Flow (Institutional Bias) with the Futures Long/Short Ratio (Retail Sentiment), the tool identifies high-probability zones for market movement.
+The core philosophy of Bitget Bias is rooted in the interaction between institutional activity and retail positioning. Most retail traders are liquidated at key levels; this tool identifies when retail is "over-extended" in one direction while institutional participants are actively hitting the tape.
 
-The logic follows the Accumulation-Manipulation-Distribution (AMD) framework:
-1.  Accumulation: Identified through sideways candle structures and Whale Net Flow increases.
-2.  Manipulation: Detected when retail sentiment becomes over-extended (High L/S ratio), signaling a potential sweep of Buy-Side Liquidity (BSL) or Sell-Side Liquidity (SSL).
-3.  Distribution: Confirmed when Whale Flow and Open Interest (OI) align with the directional price movement.
+By comparing the Taker Buy/Sell Volume (Institutional Aggression) with the Futures Long/Short Ratio (Retail Sentiment), the tool identifies high-probability zones for market movement.
 
-## Methodology and Data Sources
-
-The application leverages specific Bitget API endpoints to build its bias model:
-
-### Spot Data
-*   Whale Flow: Uses `/api/v2/spot/market/whale-net-flow` to determine institutional buying vs. selling.
-*   Fund Flow: (Internal Logic) Distinguishes between fish, dolphin, and whale volume to confirm the current phase of the market cycle.
-
-### Futures Data
-*   Open Interest (OI): Uses `/api/v2/mix/market/open-interest`. Rising OI during price increases confirms displacement, while falling OI suggests a trend conclusion.
-*   Long/Short Ratio: Uses `/api/v2/mix/market/long-short`. Extreme ratios (e.g., > 1.2 or < 0.8) indicate a crowded retail trade likely to be swept by larger market participants.
+### Key Questions Answered
+1.  Is the current trend supported by aggressive buying or selling?
+2.  Is retail heavily one-sided, suggesting a potential sweep of their liquidity?
+3.  Is the funding rate suggesting an exhausted move?
 
 ## Usage
 
-The tool runs a continuous monitoring loop, polling the Bitget API every 30 seconds for the BTCUSDT pair.
+The tool runs a continuous monitoring loop, polling the Bitget API every 30 seconds for the BTCUSDT pair. It provides a real-time visual balance of the Long/Short ratio.
 
 ### Execution
 
@@ -41,55 +31,70 @@ The tool runs a continuous monitoring loop, polling the Bitget API every 30 seco
 ./bitget-bias
 ```
 
-### Example Output
+### Understanding the Output
 
 ```text
 --- BTCUSDT 10:15:30 ---
-Whale: BUYing
-OI Size: 15420.25
-L/S Ratio: 0.72
+Aggro: Taker BUYING
+Ratio: 0.72 | [S] -------X-----|----- [L] | Dev: -0.28
 Trap: Retail Over-Short (Wait Sweep Up)
 BIAS SCORE: 2 -> BIAS: BULLISH (Target BSL/Distribution Up)
 ```
 
+*   Aggro: Shows whether market orders (Takers) are predominantly buying or selling.
+*   Ratio: A visual scale representing retail positioning.
+*   Trap: Specific warning when retail is over-leveraged in a specific direction.
+*   Bias Score: A numerical sum of all indicators (-3 to +3).
+
 ## Technical Reference
 
-The following Bitget data points inform the current and future logic of this tool:
+The application leverages specific Bitget API endpoints to build its bias model:
 
 | Category | Endpoint | Indicator |
 | :--- | :--- | :--- |
-| Institutional | Whale Net Flow | Bias identification (Buy > Sell = Bullish) |
-| Sentiment | Long/Short Ratio | Retail Trap identification (Crowd Long = Potential Sweep Down) |
-| Momentum | Open Interest | Displacement confirmation (OI Up + Price Up = Strong Trend) |
-| Liquidity | Orderbook | Large limit order identification (BSL/SSL zones) |
-| Structure | Market Candles | Range detection and Fair Value Gaps (FVG) |
+| Aggression | /api/v2/mix/market/taker-buy-sell | Institutional Aggression (Market Orders) |
+| Sentiment | /api/v2/mix/market/long-short | Retail Trap identification (Crowd Long/Short) |
+| Exhaustion | /api/v2/mix/market/current-fund-rate | Detects over-leveraged costs for holding positions |
 
 ## Installation
 
+### Prerequisites
+*   Go 1.26.2 or higher.
+
 ### From Source
 
-1.  Ensure you have Go 1.26.2 or higher installed.
-2.  Clone the repository:
+1.  Clone the repository:
     ```bash
-    git clone https://github.com/youruser/bitget-bias.git
+    git clone https://github.com/s4mn0v/bitget-bias.git
     ```
-3.  Navigate to the directory:
+2.  Navigate to the directory:
     ```bash
     cd bitget-bias
     ```
-4.  Build the binary:
+3.  Run it | Build the binary:
+    ```bash
+    go run .
+    ```
+    ```
+    
     ```bash
     go build -o bitget-bias
     ```
 
 ## Development and Contributions
 
-Future updates intend to incorporate WebSocket (WS) channels for real-time execution data:
-*   Fill Channel: To detect the difference between wick and body closures for sweep confirmation.
-*   Ticker Channel: To monitor spread increases that signal high-volatility manipulation risks.
+The tool is designed with an extensible architecture. Future updates intend to incorporate:
+*   Spot Whale Net Flow: To compare spot accumulation with futures positioning.
+*   WebSocket Integration: For sub-second response times on volume spikes.
+*   Orderbook Analysis: Identifying large limit order walls (Sell-Side and Buy-Side Liquidity).
 
 If you wish to contribute, please submit a pull request or open an issue to discuss proposed changes.
 
+## Author
+
+[S4M-N0V](https://github.com/s4mn0v/)
+
 ## Disclaimer
 
-This software is for informational purposes only. Trading cryptocurrencies involves significant risk. The bias score is a mathematical representation of specific data points and does not guarantee market direction.
+This software is for informational purposes only. Trading cryptocurrencies involves significant risk. The bias score is a mathematical representation of specific data points and does not guarantee market direction. Never trade with money you cannot afford to lose.
+
